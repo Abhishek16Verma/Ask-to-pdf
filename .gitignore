@@ -1,0 +1,16 @@
+app/.env
+.env
+uploads/
+__pycache__/
+*.log
+app/__pycache__/
+app/uploads/
+pdf_loader/__pycache__/
+pdf_loader/uploads/
+*/__pycache__/*
+*/__pycache__/*
+*/uploads/*
+app/*.log
+*.pdf
+*.pyc
+.vscode/
