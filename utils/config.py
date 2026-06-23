@@ -12,6 +12,7 @@ def _resolve_env_file() -> Path | str:
 
 class Settings(BaseSettings):
     qdrant_host: str = "http://localhost:6333"
+    redis_host: str = "redis://localhost:6379"
     collection_name: str = "ask_to_pdf_collection"
 
     groq_api_key: str = "GROQ_API_KEY"

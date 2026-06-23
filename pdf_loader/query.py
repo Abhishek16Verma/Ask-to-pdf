@@ -10,8 +10,12 @@ from langchain_qdrant import QdrantVectorStore
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.prompts import MessagesPlaceholder
 from loguru import logger
 from utils.config import get_settings
+from typing import AsyncGenerator
 
 load_dotenv(Path(__file__).with_name(".env"))
 
@@ -31,6 +35,15 @@ class PDFQuery:
 
     def format_docs(self, docs):
         return "\n\n".join(doc.page_content for doc in docs)
+
+    def get_session_history(self, session_id: str) -> InMemoryChatMessageHistory:
+        # In a real application, you would retrieve this from a database or cache
+        session_storage = {}
+        if session_id not in session_storage:
+            session_storage[session_id] = InMemoryChatMessageHistory()
+            logger.info(f"Created new chat history for session: {session_id}")
+        return session_storage[session_id]
+
 
     def build_chain(self, use_qroq: bool = True):
         
@@ -53,6 +66,7 @@ class PDFQuery:
         # Prompt template
         prompt_template = ChatPromptTemplate.from_messages([
             ("system", "You are a helpful assistant that answers questions based on the provided context."),
+            MessagesPlaceholder(variable_name="history", optional=True),
             ("human", "{context}\n\nQuestion: {question}\nAnswer:")
         ])
         logger.info("LLM and prompt template initialized.")
@@ -67,28 +81,8 @@ class PDFQuery:
             | StrOutputParser()
         )
         return chain
-        # logger.info("Vector store initialized.")
-        # self.retriever = self.vectorstore.as_retriever(search_kwargs={"k": 3})
-        # logger.info("Retriever created from vector store.")
-        # self.llm = llm
-        # logger.info("LLM initialized.")
-        # source_documents = self.retriever.invoke(question)
-        # logger.info("Relevant documents retrieved.")
-        # context = "\n\n".join(doc.page_content for doc in source_documents)
-        # prompt = (
-        #     "Use the provided context to answer the user's question. "
-        #     "If the answer is not in the context, say you do not know.\n\n"
-        #     f"Context:\n{context}\n\nQuestion: {question}"
-        # )
-        # result = self.llm.invoke([HumanMessage(content=prompt)])
-        # logger.info("Query executed.")
-        # return result.content
-
-# if __name__ == "__main__":
-#     pdf_query = PDFQuery()
-#     question = "Can you give me some info around Newsletter what it is and what topics in this doc?"
-#     chain = pdf_query.build_chain()
-#     answer = chain.invoke({"question": question})
-#     print(f"Question: {question}\nAnswer: {answer}")
-
+    async def stream_chain(self, chain, question: str, session_id: str, use_qroq: bool = True) -> AsyncGenerator[str, None]:
+        logger.info("Starting to stream the response...")
+        async for response in chain.astream(question):
+            yield response
 query_object = PDFQuery()

@@ -2,6 +2,7 @@ app/.env
 .env
 uploads/
 __pycache__/
+pycache/
 *.log
 app/__pycache__/
 app/uploads/
@@ -14,3 +15,10 @@ app/*.log
 *.pdf
 *.pyc
 .vscode/
+
+# Python virtual environments
+env/
+envs/
+.env/
+.venv/
+venv/
