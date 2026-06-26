@@ -21,4 +21,4 @@ env/
 envs/
 .env/
 .venv/
-venv/
+venv/.env
