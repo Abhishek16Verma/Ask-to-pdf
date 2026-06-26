@@ -29,7 +29,13 @@ async def ask_question(request: Request, payload: QueryRequest):
             session_id=payload.session_id,
         )
     except Exception as e:
+        error_text = str(e)
         log.exception(f"Error processing question: {e}")
+        if "invalid_api_key" in error_text.lower() or "invalid api key" in error_text.lower():
+            raise HTTPException(
+                status_code=502,
+                detail="Invalid GROQ_API_KEY configuration. Update your .env with a valid Groq key.",
+            )
         raise HTTPException(status_code=500, detail="An error occurred while processing your question.")
 
 
@@ -56,5 +62,11 @@ async def ask_question_stream(request: Request, payload: QueryRequest):
             },
         )
     except Exception as e:
+        error_text = str(e)
         log.exception(f"Error processing question: {e}")
+        if "invalid_api_key" in error_text.lower() or "invalid api key" in error_text.lower():
+            raise HTTPException(
+                status_code=502,
+                detail="Invalid GROQ_API_KEY configuration. Update your .env with a valid Groq key.",
+            )
         raise HTTPException(status_code=500, detail="An error occurred while processing your question.")
